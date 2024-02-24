@@ -11,32 +11,38 @@ static void procAppSendPacket(ProcApp& app, OutputPacket& packet);
 
 static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacket& output);
 
-int procAppRun(ProcApp& app)
-{
+int procAppRun(ProcApp& app){
+
 	InputPacket inputPacket;	
 	OutputPacket outputPacket;
 	
-	while(procAppReceivePacket(app,inputPacket) == true){
-	procAppProcessing(app,inputPacket,outputPacket);
-	procAppSendPacket(app,outputPacket);
+	while(procAppReceivePacket(app,inputPacket))
+    {
+	    procAppProcessing(app,inputPacket,outputPacket);
+	    procAppSendPacket(app,outputPacket);
     }
 	return 0;
 }
 
-static bool procAppReceivePacket(ProcApp& /*app*/, InputPacket& packet)
-{
-    cout << "count=";
-	cin >> packet.count;
-	if ( packet.count > INPUTPACKET_MAXCOUNT )
+static bool procAppReceivePacket(ProcApp& app, InputPacket& packet){
+
+	//прием количества отсчетов
+	int ret = read(app.readFd, &packet.count, sizeof(packet.count));
+	if ( ret == 0 || ret == -1 )
 		return false;
-	cout << "items=";
-	for(unsigned i = 0; i<packet.count; ++i)
-		cin >> packet.data[i].level;
+	if ( packet.count == 0 )
+		return true;
+	
+	//прием набора отсчетов
+	ret = read(app.readFd, packet.data, packet.count * sizeof(InputPacketItem));
+	if ( ret == 0 || ret == -1 )
+		return false;
+	
 	return true;
 }
 
-static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& output)
-{
+static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& output){
+
     unsigned start = 0;
     unsigned currentMaxPosition = 0;
     unsigned currentMax = 0;
@@ -78,8 +84,8 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
     output.count = outCount;
 }
 
-static void procAppSendPacket(ProcApp& /*app*/, OutputPacket& output)
-{
+static void procAppSendPacket(ProcApp& /*app*/, OutputPacket& output){
+
     cout << "Output Packet:" << endl;
 	for(unsigned i = 0; i < output.count; ++i){
 		cout << i+1 << " group: (| position of local max: " << output.data[i].localMaxPosition << "| local max level: " << output.data[i].localMax;
@@ -91,6 +97,7 @@ static void procAppSendPacket(ProcApp& /*app*/, OutputPacket& output)
 }
 
 static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacket& output){
+    
     output.data[count].localMaxPosition = maxPos;
     output.data[count].localMax = localMax;
     output.data[count].positionStartItem = start;
