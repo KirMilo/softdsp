@@ -96,7 +96,7 @@ static void procAppSendPacket(ProcApp& /*app*/, OutputPacket& output){
 	return;
 }
 
-static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacket& output){
+static void fillingGroup(unsigned count, unsigned maxPos, unsigned localMax, unsigned start, unsigned end ,OutputPacket& output){
     
     output.data[count].localMaxPosition = maxPos;
     output.data[count].localMax = localMax;

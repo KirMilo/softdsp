@@ -47,6 +47,11 @@ int main()
 		
 		ImiApp app;
 		app.writeFd = pipeFd[1];
+		app.fromUser = false;
+		app.packetCount = 4;
+		app.packetSize = 16;
+		app.maxLevel = 4;
+
 		int ret = imiAppRun(app);
 		close(app.writeFd);
 		return ret;
