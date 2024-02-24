@@ -3,6 +3,7 @@
 
 struct ConfigPacketBody
 {
+    //limits
     unsigned A; 
     unsigned B;
 };

@@ -2,6 +2,7 @@
 #include "inputpacket.h"
 #include "packet.h"
 #include "messageid.h"
+#include "configpacket.h"
 
 #include <time.h>
 #include <unistd.h>
@@ -33,6 +34,15 @@ int imiAppRun(ImiApp& app) {
 	clock_gettime(CLOCK_MONOTONIC, &app.actTime);
 
 	Packet packet;
+
+	ConfigPacketBody* cfgBody = (ConfigPacketBody*) (packet.body);
+	cfgBody->A = app.procConfig.A;
+	cfgBody->B = app.procConfig.B;
+	packet.header.message = MESSAGE_PROCCONFIG;
+	packet.header.size = sizeof(ConfigPacketBody);
+	write(app.writeFd, &packet.header, sizeof(packet.header));
+	write(app.writeFd, packet.body, packet.header.size);
+
 	while (imiAppBuildPacket(app, packet))	//формирование пакета
 	{		
 		//запись пакета в канал обмена

@@ -1,13 +1,7 @@
 #ifndef procapp_h
 #define procapp_h
 
-struct ProcConfig
-{
-   // Limits
-    unsigned A; 
-    unsigned B;
-};
-
+#include "procconfig.h"
 
 struct ProcApp
 {

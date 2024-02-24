@@ -122,8 +122,10 @@ static void procAppSendPacket(ProcApp& app, Packet& packet){
 }
 
 static void processingImpl(const Packet& input, Packet& output, const ProcConfig& config){
+   
    InputPacketBody& iBody = *(InputPacketBody*)input.body;
 	OutputPacketBody& oBody = *(OutputPacketBody*)output.body;
+
     unsigned start = 0;
     unsigned currentMaxPosition = 0;
     unsigned currentMax = 0;
@@ -183,10 +185,13 @@ static void* processingExecute(void* arg) {
    PacketContainer* oc = params->oc;
    while ( 1 ) {
       Packet* input = pcStartReadPacket(ic);
-      Packet* output = pcStartWritePacket(oc);
-      procAppProcessing(*params->app,*input,*output);
+
+      if (input->header.message == MESSAGE_INPUTPACKET) {
+         Packet* output = pcStartWritePacket(oc);
+         procAppProcessing(*params->app,*input,*output);
+         pcFinishWritePacket(oc);
+      }
       pcFinishReadPacket(ic);
-      pcFinishWritePacket(oc);
    }
    return 0;
 }

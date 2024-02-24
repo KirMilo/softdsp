@@ -18,13 +18,16 @@ bool optionsParse(int argc, char** argv, ControlParameters& params);
 
 int main(int argc, char** argv)
 {
+	ProcConfig defaultConfig;
+	defaultConfig.A = 1;
+	defaultConfig.B = 3;
+
 	ControlParameters params;
-	params.fromUser = true;
+	params.fromUser = false;
 	params.packetCount = 8;
 	params.packetSize = 16;
 	params.maxLevel = 4;
-	params.A = 1;
-	params.B = 3;
+	params.procConfig = defaultConfig;
 	params.procDelay = 0;
 	params.generationJitterLevel = 0;
 
@@ -54,8 +57,7 @@ int main(int argc, char** argv)
 		close(pipeConsumer[0]);
 
 		ProcApp app;
-		app.procConfig.A = params.A;
-		app.procConfig.B = params.B;
+		app.procConfig = defaultConfig;
 		app.readFd = pipeFd[0];
 		app.consumerFd = pipeConsumer[1];
 		app.procDelay = params.procDelay;
@@ -84,6 +86,7 @@ int main(int argc, char** argv)
 		app.packetSize = params.packetSize;
 		app.maxLevel = params.maxLevel;
 		app.generationJitterLevel = params.generationJitterLevel;
+		app.procConfig = params.procConfig;
 
 		int ret = imiAppRun(app);
 		close(app.writeFd);
@@ -142,10 +145,10 @@ bool optionsParse(int argc, char **argv, ControlParameters& params)
 				params.maxLevel = atoi(optarg);
 				break;
 			case 'a':
-				params.A = atoi(optarg);
+				params.procConfig.A = atoi(optarg);
 				break;
 			case 'b':
-				params.B = atoi(optarg);
+				params.procConfig.B = atoi(optarg);
 				break;
 			case 'p':
 				return parsParams(optarg, params);

@@ -1,6 +1,7 @@
 #include "consumerapp.h"
 #include "outputpacket.h"
 #include "packet.h"
+#include "messageid.h"
 
 #include <unistd.h>
 #include <cstdlib>
@@ -22,6 +23,9 @@ int consumerAppRun(ConsumerApp& app)
 
 static void consumerAppOutPacket(ConsumerApp& /*app*/, Packet& packet) {
 	
+	if (packet.header.message != MESSAGE_OUTPUTPACKET)
+		return;
+
 	OutputPacketBody& body = *(OutputPacketBody*)packet.body;
 	cout << "Output Packet:" << endl;
 	for(unsigned i = 0; i < body.count; ++i)

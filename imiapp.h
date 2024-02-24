@@ -1,5 +1,8 @@
 #ifndef imiapp_h
 #define imiapp_h
+
+#include "procconfig.h"
+
 #include <time.h>
 
 struct ImiApp {
@@ -11,6 +14,7 @@ struct ImiApp {
    unsigned packetSize; //размер пакета (в отсчетах)
    unsigned maxLevel; //максимальное значение отсчета
    unsigned generationJitterLevel;  //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
+   ProcConfig procConfig;
 };
 
 int imiAppRun(ImiApp& app);

@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "procconfig.h"
+
 using namespace std;
 
 struct ControlParameters 
@@ -9,8 +11,7 @@ struct ControlParameters
 	unsigned packetCount; //количество имитируемых пакетов.
 	unsigned packetSize; //количество отсчётов в имитируемом пакете
 	unsigned maxLevel; //максимально возможное значение отсчёта сигнала
-	unsigned A; 
-    unsigned B;
+	ProcConfig procConfig;
 	unsigned procDelay; //длительность времени обработки в миллисекундах (не менее)
 	unsigned generationJitterLevel; //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
 };
@@ -40,10 +41,10 @@ bool parsParams(string fileName, ControlParameters& params){
 					params.maxLevel = getDigits(line);
 					break;
 				case 4:
-					params.A = getDigits(line);
+					params.procConfig.A = getDigits(line);
 					break;
 				case 5:
-					params.B = getDigits(line);
+					params.procConfig.B = getDigits(line);
 					break;
 			}
 		}
