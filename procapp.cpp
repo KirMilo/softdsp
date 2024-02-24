@@ -84,15 +84,10 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
     output.count = outCount;
 }
 
-static void procAppSendPacket(ProcApp& /*app*/, OutputPacket& output){
+static void procAppSendPacket(ProcApp& app, OutputPacket& output){
 
-    cout << "Output Packet:" << endl;
-	for(unsigned i = 0; i < output.count; ++i){
-		cout << i+1 << " group: (| position of local max: " << output.data[i].localMaxPosition << "| local max level: " << output.data[i].localMax;
-        cout << "| start: " << output.data[i].positionStartItem << "| end: " << output.data[i].positionEndItem <<  "|) ";
-	    cout << endl;
-    }
-    cout << "GG WP GL HF" << endl;
+    write(app.consumerFd, &output.count,sizeof(output.count));
+	write(app.consumerFd, output.data, output.count * sizeof(OutputPacketItem));
 	return;
 }
 

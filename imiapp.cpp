@@ -1,9 +1,12 @@
 #include "imiapp.h"
 #include "inputpacket.h"
-
+#include <time.h>
 #include <unistd.h>
 #include <iostream>
+#include <cstdlib>
 using namespace std;
+
+
 
 static bool imiAppBuildPacket(ImiApp& app, InputPacket& packet);
 static bool imiAppGetFromUser(ImiApp& app, InputPacket& packet);
