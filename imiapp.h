@@ -1,5 +1,6 @@
 #ifndef imiapp_h
 #define imiapp_h
+#include <time.h>
 
 struct ImiApp {
    int writeFd;

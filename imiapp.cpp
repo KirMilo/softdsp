@@ -7,7 +7,6 @@
 using namespace std;
 
 
-
 static bool imiAppBuildPacket(ImiApp& app, InputPacket& packet);
 static bool imiAppGetFromUser(ImiApp& app, InputPacket& packet);
 static bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet);
@@ -42,7 +41,7 @@ int imiAppRun(ImiApp& app) {
 
 bool imiAppBuildPacket(ImiApp& app, InputPacket& packet) {
 	
-   return app.fromUser ? imiAppGetFromUser(app,packet) : imiAppGeneratePacket(app,packet);
+   return app.fromUser ? imiAppGetFromUser(app, packet) : imiAppGeneratePacket(app, packet);
 }
 
 bool imiAppGetFromUser(ImiApp& /*app*/, InputPacket& packet) {
@@ -65,7 +64,7 @@ bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet) {
         return false;
         
     //ожидание момента времени
-	 while ( clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &app.actTime, NULL) != 0 )
+	while ( clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &app.actTime, NULL) != 0 )
 	    continue;
 	 
 	 //расчет следующей метки времени
@@ -73,11 +72,11 @@ bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet) {
 	 
 	 //формирование пакета
     packet.count = app.packetSize;
-    for(unsigned i = 0; i<packet.count; ++i )
+    for(unsigned i = 0; i < packet.count; ++i )
         packet.data[i].level =  rand() % app.maxLevel;
     
     //изменение количества генерации пакетов
-	 if( app.packetCount >0 )
+	if( app.packetCount >0 )
         --app.packetCount;
     return true;
 }
