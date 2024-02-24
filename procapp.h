@@ -14,6 +14,7 @@ struct ProcApp
     ProcConfig procConfig;
     int readFd;
     int consumerFd;
+    unsigned procDelay; //задержка для имитации обработки указанной длительности
 };
 
 int procAppRun(ProcApp& app);

@@ -11,6 +11,7 @@ struct ControlParameters
 	unsigned maxLevel; //максимально возможное значение отсчёта сигнала
 	unsigned A; 
     unsigned B;
+	unsigned procDelay; //длительность времени обработки в миллисекундах (не менее)
 };
 
 unsigned getDigits(string curLine);

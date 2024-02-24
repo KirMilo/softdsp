@@ -10,6 +10,8 @@
 #include "procapp.cpp"
 #include "imiapp.cpp"
 #include "consumerapp.cpp"
+#include "inputpacketcontainer.cpp"
+#include "outputpacketcontainer.cpp"
 
 bool optionsParse(int argc, char** argv, ControlParameters& params);
 
@@ -21,7 +23,9 @@ int main(int argc, char** argv)
 	params.packetSize = 16;
 	params.maxLevel = 4;
 	params.A = 1;
-	params.B = 3;			
+	params.B = 3;
+	params.procDelay = 0;
+
 	if ( !optionsParse(argc, argv, params) ) 
 		return 5;
 
@@ -52,6 +56,7 @@ int main(int argc, char** argv)
 		app.procConfig.B = params.B;
 		app.readFd = pipeFd[0];
 		app.consumerFd = pipeConsumer[1];
+		app.procDelay = params.procDelay;
 
 		int ret = procAppRun(app);
 		close(app.readFd);
@@ -141,6 +146,9 @@ bool optionsParse(int argc, char **argv, ControlParameters& params)
 				break;
 			case 'p':
 				return parsParams(optarg, params);
+			case 't':
+				params.procDelay = atoi(optarg);
+				break;
 			default:
 				return false;
       }	
