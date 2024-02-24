@@ -1,24 +1,25 @@
 #include "procapp.h"
 #include "imiapp.h"
 #include "consumerapp.h"
+#include "parsparams.cpp"
+
 #include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
 #include <sys/wait.h>
-#include "parsparams.cpp"
+
 
 #include "procapp.cpp"
 #include "imiapp.cpp"
 #include "consumerapp.cpp"
-#include "inputpacketcontainer.cpp"
-#include "outputpacketcontainer.cpp"
+#include "packetcontainer.cpp"
 
 bool optionsParse(int argc, char** argv, ControlParameters& params);
 
 int main(int argc, char** argv)
 {
 	ControlParameters params;
-	params.fromUser = false;
+	params.fromUser = true;
 	params.packetCount = 8;
 	params.packetSize = 16;
 	params.maxLevel = 4;

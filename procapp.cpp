@@ -1,8 +1,8 @@
 #include "procapp.h"
 #include "inputpacket.h"
 #include "outputpacket.h"
-#include "inputpacketcontainer.h"
-#include "outputpacketcontainer.h"
+#include "packetcontainer.h"
+#include "packet.h"
 
 #include <iostream>
 using namespace std;
@@ -10,13 +10,13 @@ using namespace std;
 #include <unistd.h>
 #include <pthread.h>
 
-static bool procAppReceivePacket(ProcApp& app, InputPacket& packet);
-static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& output);
-static void procAppSendPacket(ProcApp& app, OutputPacket& packet);
+static bool procAppReceivePacket(ProcApp& app, Packet& packet);
+static void procAppProcessing(ProcApp& app, Packet& input, Packet& output);
+static void procAppSendPacket(ProcApp& app, Packet& packet);
 
-static void processingImpl(const InputPacket& input, OutputPacket& output, const ProcConfig& config);
+static void processingImpl(const Packet& input, Packet& output, const ProcConfig& config);
 
-static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacket& output);
+static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacketBody& output);
 
 //функции, исполняемые потоками
 static void* processingExecute(void* arg);
@@ -26,27 +26,26 @@ static void* outputExecute(void*);
 //структурные типы данных для передачи параметров в функцию потока
 struct InputThreadData {
    ProcApp* app;
-   InputPacketContainer* ic;
+   PacketContainer* ic;
 };
 
 struct OutputThreadData {
    ProcApp* app;
-   OutputPacketContainer* oc;
+   PacketContainer* oc;
 };
 
 struct ProcessingThreadData {
    ProcApp* app;
-   InputPacketContainer* ic;
-   OutputPacketContainer* oc;
+   PacketContainer* ic;
+   PacketContainer* oc;
 };
 
 int procAppRun(ProcApp& app){
-
    //создание буферов совместного доступа потоками
-   InputPacketContainer ic;
-   OutputPacketContainer oc;
-   icInit(&ic);
-   ocInit(&oc);
+   PacketContainer ic;
+   PacketContainer oc;
+   pcInit(&ic);
+   pcInit(&oc);
 
    //заполнение структур-параметров функций потоков
    InputThreadData itData;
@@ -76,29 +75,29 @@ int procAppRun(ProcApp& app){
    pthread_join(outputThread,0);
 
    //освобождение ресурсов буферов
-   ocDestroy(&oc);
-   icDestroy(&ic);
+   pcDestroy(&oc);
+   pcDestroy(&ic);
    return 0;
 }
 
-static bool procAppReceivePacket(ProcApp& app, InputPacket& packet){
-
+static bool procAppReceivePacket(ProcApp& app, Packet& packet){
 	//прием количества отсчетов
-	int ret = read(app.readFd, &packet.count, sizeof(packet.count));
+	int ret = read(app.readFd, &packet.header, sizeof(packet.header));
 	if ( ret == 0 || ret == -1 )
 		return false;
-	if ( packet.count == 0 )
+	if ( packet.header.size == 0 )
 		return true;
-	
+
+
 	//прием набора отсчетов
-	ret = read(app.readFd, packet.data, packet.count * sizeof(InputPacketItem));
+	ret = read(app.readFd, packet.body, packet.header.size);
 	if ( ret == 0 || ret == -1 )
 		return false;
-	
+
 	return true;
 }
 
-static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& output)
+static void procAppProcessing(ProcApp& app, Packet& input, Packet& output)
 {
    struct timespec procTime;
    clock_gettime(CLOCK_MONOTONIC,&procTime);
@@ -114,14 +113,16 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
    return;
 }
 
-static void procAppSendPacket(ProcApp& app, OutputPacket& output){
+static void procAppSendPacket(ProcApp& app, Packet& packet){
 
-   write(app.consumerFd, &output.count,sizeof(output.count));
-	write(app.consumerFd, output.data, output.count * sizeof(OutputPacketItem));
+   write(app.consumerFd, &packet.header,sizeof(packet.header));
+	write(app.consumerFd, packet.body, packet.header.size);
 	return;
 }
 
-static void processingImpl(const InputPacket& input, OutputPacket& output, const ProcConfig& config){
+static void processingImpl(const Packet& input, Packet& output, const ProcConfig& config){
+   InputPacketBody& iBody = *(InputPacketBody*)input.body;
+	OutputPacketBody& oBody = *(OutputPacketBody*)output.body;
     unsigned start = 0;
     unsigned currentMaxPosition = 0;
     unsigned currentMax = 0;
@@ -129,19 +130,19 @@ static void processingImpl(const InputPacket& input, OutputPacket& output, const
     unsigned outCount = 0;
     unsigned startGroup = 0;
 
-    for(unsigned i = 0; i < input.count; ++i){
+    for(unsigned i = 0; i < iBody.count; ++i){
         
-        if(config.A <= input.data[i].level && input.data[i].level <= config.B){
+        if(config.A <= iBody.data[i].level && iBody.data[i].level <= config.B){
 
             if (startGroup == 0){
                 start = currentMaxPosition = i;
-                currentMax = input.data[i].level;
+                currentMax = iBody.data[i].level;
                 startGroup = 1;
             }
 
             else{
-                if (input.data[i].level > currentMax){
-                    currentMax = input.data[i].level;
+                if (iBody.data[i].level > currentMax){
+                    currentMax = iBody.data[i].level;
                     currentMaxPosition = i;
                 }
             }
@@ -149,7 +150,7 @@ static void processingImpl(const InputPacket& input, OutputPacket& output, const
         else{
             if (startGroup == 1){
 
-                fillingGroup(outCount, currentMaxPosition, currentMax, start, i-1, output);
+                fillingGroup(outCount, currentMaxPosition, currentMax, start, i-1, oBody);
                 outCount++;
                 startGroup = 0;
             }
@@ -157,13 +158,15 @@ static void processingImpl(const InputPacket& input, OutputPacket& output, const
     }
     if (startGroup == 1){
 
-        fillingGroup(outCount, currentMaxPosition, currentMax, start, input.count-1, output);
+        fillingGroup(outCount, currentMaxPosition, currentMax, start, iBody.count-1, oBody);
         outCount++;
     }
-    output.count = outCount;
+    oBody.count = outCount;
+    output.header.size = oBody.count*sizeof(OutputPacketItem) + sizeof(oBody.count);
+    return;
 }
 
-static void fillingGroup(unsigned count, unsigned maxPos, unsigned localMax, unsigned start, unsigned end ,OutputPacket& output){
+static void fillingGroup(unsigned count, unsigned maxPos, unsigned localMax, unsigned start, unsigned end ,OutputPacketBody& output){
     
     output.data[count].localMaxPosition = maxPos;
     output.data[count].localMax = localMax;
@@ -174,14 +177,14 @@ static void fillingGroup(unsigned count, unsigned maxPos, unsigned localMax, uns
 static void* processingExecute(void* arg) {
 
    ProcessingThreadData* params = (ProcessingThreadData*)(arg);
-   InputPacketContainer* ic = params->ic;
-   OutputPacketContainer* oc = params->oc;
+   PacketContainer* ic = params->ic;
+   PacketContainer* oc = params->oc;
    while ( 1 ) {
-      InputPacket* input = icStartReadPacket(ic);
-      OutputPacket* output = ocStartWritePacket(oc);
+      Packet* input = pcStartReadPacket(ic);
+      Packet* output = pcStartWritePacket(oc);
       procAppProcessing(*params->app,*input,*output);
-      icFinishReadPacket(ic);
-      ocFinishWritePacket(oc);
+      pcFinishReadPacket(ic);
+      pcFinishWritePacket(oc);
    }
    return 0;
 }
@@ -189,12 +192,12 @@ static void* processingExecute(void* arg) {
 static void* inputExecute(void* arg) {
 
    InputThreadData* params = (InputThreadData*)(arg);
-   InputPacketContainer* ic = params->ic;
+   PacketContainer* ic = params->ic;
    while ( 1 ) {
-      InputPacket* input = icStartWritePacket(ic);
+      Packet* input = pcStartWritePacket(ic);
       if ( !procAppReceivePacket(*params->app,*input) )
          break;
-      icFinishWritePacket(ic);
+      pcFinishWritePacket(ic);
    }
    return 0;
 }
@@ -202,11 +205,11 @@ static void* inputExecute(void* arg) {
 static void* outputExecute(void* arg) {
 
    OutputThreadData* params = (OutputThreadData*)(arg);
-   OutputPacketContainer* oc = params->oc;
+   PacketContainer* oc = params->oc;
    while ( 1 ) {
-      OutputPacket* output = ocStartReadPacket(oc);
+      Packet* output = pcStartReadPacket(oc);
       procAppSendPacket(*params->app,*output);
-      ocFinishReadPacket(oc);
+      pcFinishReadPacket(oc);
    }
    return 0;
 }

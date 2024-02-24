@@ -8,7 +8,7 @@ struct InputPacketItem
 
 #define INPUTPACKET_MAXCOUNT 100
 
-struct InputPacket
+struct InputPacketBody
 {
 	unsigned count; 
 	InputPacketItem data[INPUTPACKET_MAXCOUNT];

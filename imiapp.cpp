@@ -1,15 +1,18 @@
 #include "imiapp.h"
-#include "inputpacket.h"
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
+
+#include "inputpacket.h"
+#include "packet.h"
+
 using namespace std;
 
 
-static bool imiAppBuildPacket(ImiApp& app, InputPacket& packet);
-static bool imiAppGetFromUser(ImiApp& app, InputPacket& packet);
-static bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet);
+static bool imiAppBuildPacket(ImiApp& app, Packet& packet);
+static bool imiAppGetFromUser(ImiApp& app, Packet& packet);
+static bool imiAppGeneratePacket(ImiApp& app, Packet& packet);
 
 //расчет метки времени, отстоящей от заданной на указанный интервал
 struct timespec add(struct timespec left, time_t tv_sec, long tv_nsec) {
@@ -28,37 +31,39 @@ int imiAppRun(ImiApp& app) {
 	//формирование первой метки времени для генерации пакета
 	clock_gettime(CLOCK_MONOTONIC, &app.actTime);
 
-	InputPacket packet;
+	Packet packet;
 	while (imiAppBuildPacket(app, packet))	//формирование пакета
 	{		
 		//запись пакета в канал обмена
-		write(app.writeFd, &packet.count, sizeof(packet.count));
-		write(app.writeFd, packet.data, packet.count * sizeof(InputPacketItem));
+		write(app.writeFd, &packet.header, sizeof(packet.header));
+		write(app.writeFd, packet.body, packet.header.size);
 	}
 	
 	return 0;
 }
 
-bool imiAppBuildPacket(ImiApp& app, InputPacket& packet) {
+bool imiAppBuildPacket(ImiApp& app, Packet& packet) {
 	
    return app.fromUser ? imiAppGetFromUser(app, packet) : imiAppGeneratePacket(app, packet);
 }
 
-bool imiAppGetFromUser(ImiApp& /*app*/, InputPacket& packet) {
+bool imiAppGetFromUser(ImiApp& /*app*/, Packet& packet) {
 	
+	InputPacketBody& body = *(InputPacketBody*)packet.body;
 	cout << "count=";
-	cin >> packet.count;
-	if ( packet.count > INPUTPACKET_MAXCOUNT )
+	cin >> body.count;
+	if ( body.count > INPUTPACKET_MAXCOUNT )
 		return false;
 	
 	cout << "items=";
-	for(unsigned i = 0; i < packet.count; ++i)
-		cin >> packet.data[i].level;
+	for(unsigned i = 0; i < body.count; ++i)
+		cin >> body.data[i].level;
 	
+	packet.header.size = body.count*sizeof(InputPacketItem) + sizeof(body.count);
 	return true;
 }
 
-bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet) {
+bool imiAppGeneratePacket(ImiApp& app, Packet& packet) {
 	
     if ( !app.packetCount )
         return false;
@@ -67,18 +72,21 @@ bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet) {
 	while ( clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &app.actTime, NULL) != 0 )
 	    continue;
 	 
-	 //расчет следующей метки времени
+	//расчет следующей метки времени
     long jitter = long(rand() % (2*app.generationJitterLevel+1)) - app.generationJitterLevel;
 	long timeDelay = 100000000 + jitter * 1000000;
 	if ( timeDelay < 0 )
 		timeDelay = 0;
 	app.actTime = add(app.actTime,0,timeDelay);
 	 
-	 //формирование пакета
-    packet.count = app.packetSize;
-    for(unsigned i = 0; i < packet.count; ++i )
-        packet.data[i].level =  rand() % app.maxLevel;
+	//формирование пакета
+	InputPacketBody& body = *(InputPacketBody*)packet.body;
+    body.count = app.packetSize;
+    for(unsigned i = 0; i < body.count; ++i )
+        body.data[i].level =  rand() % app.maxLevel;
     
+	packet.header.size = body.count*sizeof(InputPacketItem) + sizeof(body.count);
+
     //изменение количества генерации пакетов
 	if( app.packetCount >0 )
         --app.packetCount;
