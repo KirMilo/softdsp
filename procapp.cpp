@@ -16,10 +16,9 @@ int procAppRun(ProcApp& app)
 	InputPacket inputPacket;	
 	OutputPacket outputPacket;
 	
-	while(procAppReceivePacket(app,inputPacket))
-    {
-	    procAppProcessing(app,inputPacket,outputPacket);
-	    procAppSendPacket(app,outputPacket);
+	while(procAppReceivePacket(app,inputPacket) == true){
+	procAppProcessing(app,inputPacket,outputPacket);
+	procAppSendPacket(app,outputPacket);
     }
 	return 0;
 }
@@ -43,16 +42,16 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
     unsigned currentMax = 0;
 
     unsigned outCount = 0;
-    unsigned flag = 0;
+    unsigned startGroup = 0;
 
     for(unsigned i = 0; i < input.count; ++i){
         
         if(app.procConfig.A <= input.data[i].level && input.data[i].level <= app.procConfig.B){
 
-            if (flag == 0){
+            if (startGroup == 0){
                 start = currentMaxPosition = i;
                 currentMax = input.data[i].level;
-                flag = 1;
+                startGroup = 1;
             }
 
             else{
@@ -63,15 +62,15 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
             }
         }
         else{
-            if (flag == 1){
+            if (startGroup == 1){
 
                 fillingGroup(outCount, currentMaxPosition, currentMax, start, i-1, output);
                 outCount++;
-                flag = 0;
+                startGroup = 0;
             }
         }
     }
-    if (flag == 1){
+    if (startGroup == 1){
 
         fillingGroup(outCount, currentMaxPosition, currentMax, start, input.count-1, output);
         outCount++;

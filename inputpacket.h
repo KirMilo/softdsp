@@ -3,14 +3,14 @@
 
 struct InputPacketItem 
 {
-	int level;
+	unsigned level;
 };
 
 #define INPUTPACKET_MAXCOUNT 100
 
 struct InputPacket
 {
-	unsigned count;
+	unsigned count; 
 	InputPacketItem data[INPUTPACKET_MAXCOUNT];
 };
 

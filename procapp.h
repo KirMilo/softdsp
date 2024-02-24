@@ -1,7 +1,6 @@
 #ifndef procapp_h
 #define procapp_h
 
-
 struct ProcConfig
 {
    // Limits
