@@ -1,5 +1,6 @@
 #include "procapp.h"
 #include "imiapp.h"
+#include "consumerapp.h"
 #include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
@@ -8,6 +9,7 @@
 #include "procapp.cpp"
 #include "iostream"
 #include "imiapp.cpp"
+#include "consumerapp.cpp"
 
 int main()
 {
@@ -32,6 +34,7 @@ int main()
 	}
 	if ( pid == 0 ) {	// 0 - код потомка
 		close(pipeFd[1]);
+		close(pipeConsumer[0]);
 
 		ProcApp app;
 		app.procConfig.A = 1;
@@ -65,6 +68,24 @@ int main()
 
 		int ret = imiAppRun(app);
 		close(app.writeFd);
+		return ret;
+	}
+
+	//порождение процесса-потребителя
+	pid_t consumerPid = fork();
+	if ( consumerPid < 0 ) {
+		perror("fork");
+		return 1;
+	}
+	if ( consumerPid == 0 ) {
+		close(pipeFd[0]);
+		close(pipeFd[1]);
+		close(pipeConsumer[1]);
+		
+		ConsumerApp app;
+		app.readFd = pipeConsumer[0];
+		int ret = consumerAppRun(app);
+		close(app.readFd);
 		return ret;
 	}
 
