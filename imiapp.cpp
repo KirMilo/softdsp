@@ -1,12 +1,12 @@
 #include "imiapp.h"
+#include "inputpacket.h"
+#include "packet.h"
+#include "messageid.h"
+
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
 #include <cstdlib>
-
-#include "inputpacket.h"
-#include "packet.h"
-#include "messageid.h"
 
 using namespace std;
 

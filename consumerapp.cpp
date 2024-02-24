@@ -1,9 +1,13 @@
 #include "consumerapp.h"
 #include "outputpacket.h"
+#include "packet.h"
+
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>
+
 using namespace std;
+
 
 static void consumerAppOutPacket(ConsumerApp& app, Packet& packet);
 static bool consumerAppReceivePacket(ConsumerApp& app, Packet& packet);
