@@ -16,14 +16,14 @@ void pcDestroy(PacketContainer* /*pc*/) {
 
 Packet* pcStartReadPacket(PacketContainer* pc) {
    
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+   //ожидаем готовности пакета
    while ( !pc->canRead )
       continue;
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+   //блокируем область пакета
    pc->canRead--;
    
    Packet* ret = pc->packets + pc->readIndex;
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫
+   //переключить буфер
    ++pc->readIndex;
    if ( pc->readIndex == PacketContainer::BufferSize )
       pc->readIndex = 0;
@@ -33,15 +33,15 @@ Packet* pcStartReadPacket(PacketContainer* pc) {
 
 void pcFinishReadPacket(PacketContainer* pc) {
    
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
+   //область памяти стала доступной для записи очередного пакета
    pc->canWrite++;
    return;
 }
 
 Packet* pcStartWritePacket(PacketContainer* pc) {
    
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫
-   //О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫
+   //выделяем свободную для записи область памяти
+   //или направляем в мусорную корзину
    if ( pc->canWrite ) {
      --pc->canWrite;
      pc->toTrash = false;
@@ -52,7 +52,7 @@ Packet* pcStartWritePacket(PacketContainer* pc) {
 
    
    Packet* ret = pc->packets + pc->writeIndex;
-   //О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫
+   //переключить буфер
    ++pc->writeIndex;
    if ( pc->writeIndex == PacketContainer::BufferSize )
       pc->writeIndex = 0;
@@ -62,7 +62,7 @@ Packet* pcStartWritePacket(PacketContainer* pc) {
 
 void pcFinishWritePacket(PacketContainer* pc) {
    
-   //О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫
+   //пакет готов
    if ( !pc->toTrash )
      ++pc->canRead;
       

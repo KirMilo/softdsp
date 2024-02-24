@@ -3,12 +3,13 @@
 #include "outputpacket.h"
 #include "packetcontainer.h"
 #include "packet.h"
-
-#include <iostream>
-using namespace std;
+#include "messageid.h"
 
 #include <unistd.h>
 #include <pthread.h>
+#include <iostream>
+
+using namespace std;
 
 static bool procAppReceivePacket(ProcApp& app, Packet& packet);
 static void procAppProcessing(ProcApp& app, Packet& input, Packet& output);
@@ -163,6 +164,7 @@ static void processingImpl(const Packet& input, Packet& output, const ProcConfig
     }
     oBody.count = outCount;
     output.header.size = oBody.count*sizeof(OutputPacketItem) + sizeof(oBody.count);
+    output.header.message = MESSAGE_OUTPUTPACKET;
     return;
 }
 

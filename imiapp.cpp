@@ -6,6 +6,7 @@
 
 #include "inputpacket.h"
 #include "packet.h"
+#include "messageid.h"
 
 using namespace std;
 
@@ -60,6 +61,7 @@ bool imiAppGetFromUser(ImiApp& /*app*/, Packet& packet) {
 		cin >> body.data[i].level;
 	
 	packet.header.size = body.count*sizeof(InputPacketItem) + sizeof(body.count);
+	packet.header.message = MESSAGE_INPUTPACKET;
 	return true;
 }
 
@@ -86,6 +88,7 @@ bool imiAppGeneratePacket(ImiApp& app, Packet& packet) {
         body.data[i].level =  rand() % app.maxLevel;
     
 	packet.header.size = body.count*sizeof(InputPacketItem) + sizeof(body.count);
+	packet.header.message = MESSAGE_INPUTPACKET;
 
     //изменение количества генерации пакетов
 	if( app.packetCount >0 )
