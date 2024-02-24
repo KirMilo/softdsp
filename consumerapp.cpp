@@ -23,6 +23,13 @@ int consumerAppRun(ConsumerApp& app)
 
 static void consumerAppOutPacket(ConsumerApp& /*app*/, Packet& packet) {
 	
+	//обнаружение информации о плохом пакете
+    if ( packet.header.message == MESSAGE_BADPACKET ) {
+      cout << "bad packet" << endl;
+      return;
+    }
+
+	//обработка только пакета с результатами
 	if (packet.header.message != MESSAGE_OUTPUTPACKET)
 		return;
 

@@ -43,6 +43,13 @@ int imiAppRun(ImiApp& app) {
 	write(app.writeFd, &packet.header, sizeof(packet.header));
 	write(app.writeFd, packet.body, packet.header.size);
 
+	//формирование и отправка ошибочного пакета 
+  	if ( app.badPacket ) {
+	   packet.header.message = MESSAGE_OUTPUTPACKET;
+	   packet.header.size = 0;
+	   write(app.writeFd,&packet.header,sizeof(packet.header));
+	}
+
 	while (imiAppBuildPacket(app, packet))	//формирование пакета
 	{		
 		//запись пакета в канал обмена

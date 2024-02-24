@@ -14,7 +14,8 @@ struct ImiApp {
    unsigned packetSize; //размер пакета (в отсчетах)
    unsigned maxLevel; //максимальное значение отсчета
    unsigned generationJitterLevel;  //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
-   ProcConfig procConfig;
+   ProcConfig procConfig;  //параметры обработки для формирования пакета конфигурации
+   bool badPacket; //формирование недопустимого пакета
 };
 
 int imiAppRun(ImiApp& app);

@@ -24,13 +24,14 @@ int main(int argc, char** argv)
 	defaultConfig.B = 3;
 
 	ControlParameters params;
-	params.fromUser = false;
+	params.fromUser = true;
 	params.packetCount = 8;
 	params.packetSize = 16;
 	params.maxLevel = 4;
 	params.procConfig = defaultConfig;
 	params.procDelay = 0;
 	params.generationJitterLevel = 0;
+	params.badPacket = true;
 
 	if ( !optionsParse(argc, argv, params) ) 
 		return 5;
@@ -88,6 +89,7 @@ int main(int argc, char** argv)
 		app.maxLevel = params.maxLevel;
 		app.generationJitterLevel = params.generationJitterLevel;
 		app.procConfig = params.procConfig;
+		app.badPacket = params.badPacket;
 
 		int ret = imiAppRun(app);
 		close(app.writeFd);
@@ -129,7 +131,7 @@ int main(int argc, char** argv)
 bool optionsParse(int argc, char **argv, ControlParameters& params)
 {
 	while ( 1 ) {
-		int c = getopt (argc, argv, "ic:s:l:a:b:p:j:");
+		int c = getopt (argc, argv, "ic:s:l:a:b:t:p:j:k");
 		if ( c == -1 )
 			break;
 		switch (c) {
@@ -159,6 +161,9 @@ bool optionsParse(int argc, char **argv, ControlParameters& params)
 			case 'j':
                 params.generationJitterLevel = atoi(optarg);
                 break;
+			case 'k':
+				params.badPacket = true;
+			break;
 			default:
 				return false;
       }	

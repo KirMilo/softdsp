@@ -14,6 +14,7 @@ struct ControlParameters
 	ProcConfig procConfig;
 	unsigned procDelay; //длительность времени обработки в миллисекундах (не менее)
 	unsigned generationJitterLevel; //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
+	bool badPacket; //формирование недопустимого пакета
 };
 
 unsigned getDigits(string curLine);
