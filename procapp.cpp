@@ -6,9 +6,10 @@
 #include "messageid.h"
 #include "configpacket.h"
 
+#include <iostream>
 #include <unistd.h>
 #include <pthread.h>
-#include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -30,6 +31,7 @@ static void* outputExecute(void*);
 //функции-обработчики для вызова из диспетчера
 static void inputHandler(Packet* packet, void* clientData);
 static void procConfigHandler(Packet* packet, void* clientData);
+static void sendError(Packet* packet, PacketContainer& oc);
 
 
 //структурные типы данных для передачи параметров в функцию потока
@@ -196,7 +198,10 @@ static void* processingExecute(void* arg) {
 	Dispatcher* dispatcher = &params->app->dispatcher;
 	while (1) {
 		Packet* input = pcStartReadPacket(ic);
-		dispProcess(*dispatcher,input);
+      int ret = dispProcess(*dispatcher,input);
+      if ( ret == -1 ) {
+         sendError(input,params->app->oc);
+      }
 		pcFinishReadPacket(ic);
 	}
 	return 0;
@@ -251,5 +256,20 @@ static void procConfigHandler(Packet* packet, void* clientData) {
    ProcApp* app = (ProcApp*)clientData;
 
    procAppConfig(*app,*packet);
+   return;
+}
+
+static void sendError(Packet* packet, PacketContainer& oc) {
+   
+   Packet* output = pcStartWritePacket(&oc);
+   
+   //формирование заголовка
+   output->header.size = packet->header.size + sizeof(packet->header);
+   output->header.message = MESSAGE_BADPACKET;
+   
+   //копирование плохого пакета 
+   memcpy(output->body,packet,output->header.size);
+   
+   pcFinishWritePacket(&oc);
    return;
 }
