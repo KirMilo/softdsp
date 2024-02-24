@@ -4,6 +4,7 @@
 #include "packetcontainer.h"
 #include "packet.h"
 #include "messageid.h"
+#include "configpacket.h"
 
 #include <unistd.h>
 #include <pthread.h>
@@ -167,7 +168,7 @@ static void processingImpl(const Packet& input, Packet& output, const ProcConfig
         outCount++;
     }
     oBody.count = outCount;
-    output.header.size = oBody.count*sizeof(OutputPacketItem) + sizeof(oBody.count);
+    output.header.size = oBody.count * sizeof(OutputPacketItem) + sizeof(oBody.count);
     output.header.message = MESSAGE_OUTPUTPACKET;
     return;
 }

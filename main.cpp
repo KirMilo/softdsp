@@ -13,6 +13,7 @@
 #include "imiapp.cpp"
 #include "consumerapp.cpp"
 #include "packetcontainer.cpp"
+#include "dispatcher.cpp"
 
 bool optionsParse(int argc, char** argv, ControlParameters& params);
 
