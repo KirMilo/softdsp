@@ -70,7 +70,7 @@ bool imiAppGetFromUser(ImiApp& /*app*/, Packet& packet) {
 	for(unsigned i = 0; i < body.count; ++i)
 		cin >> body.data[i].level;
 	
-	packet.header.size = body.count*sizeof(InputPacketItem) + sizeof(body.count);
+	packet.header.size = body.count * sizeof(InputPacketItem) + sizeof(body.count);
 	packet.header.message = MESSAGE_INPUTPACKET;
 	return true;
 }

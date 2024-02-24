@@ -27,6 +27,11 @@ static void* processingExecute(void* arg);
 static void* inputExecute(void* arg);
 static void* outputExecute(void*);
 
+//функции-обработчики для вызова из диспетчера
+static void inputHandler(Packet* packet, void* clientData);
+static void procConfigHandler(Packet* packet, void* clientData);
+
+
 //структурные типы данных для передачи параметров в функцию потока
 struct InputThreadData {
    ProcApp* app;
@@ -46,22 +51,25 @@ struct ProcessingThreadData {
 
 int procAppRun(ProcApp& app){
    //создание буферов совместного доступа потоками
-   PacketContainer ic;
-   PacketContainer oc;
-   pcInit(&ic);
-   pcInit(&oc);
+   pcInit(&app.ic);
+   pcInit(&app.oc);
+   
+   //инициализация диспетчера
+   dispInit(app.dispatcher);
+   dispAddHandler(app.dispatcher,MESSAGE_INPUTPACKET,inputHandler,&app);
+   dispAddHandler(app.dispatcher,MESSAGE_PROCCONFIG,procConfigHandler,&app);
 
    //заполнение структур-параметров функций потоков
    InputThreadData itData;
    itData.app = &app;
-   itData.ic = &ic;
+   itData.ic = &app.ic;
    ProcessingThreadData ptData;
    ptData.app = &app;
-   ptData.ic = &ic;
-   ptData.oc = &oc;
+   ptData.ic = &app.ic;
+   ptData.oc = &app.oc;
    OutputThreadData otData;
    otData.app = &app;
-   otData.oc = &oc;
+   otData.oc = &app.oc;
 
    //объявление дескрипторов потоков
    pthread_t inputThread;
@@ -79,8 +87,8 @@ int procAppRun(ProcApp& app){
    pthread_join(outputThread,0);
 
    //освобождение ресурсов буферов
-   pcDestroy(&oc);
-   pcDestroy(&ic);
+   pcDestroy(&app.oc);
+   pcDestroy(&app.ic);
    return 0;
 }
 
@@ -183,24 +191,15 @@ static void fillingGroup(unsigned count, unsigned maxPos, unsigned localMax, uns
 
 static void* processingExecute(void* arg) {
 
-   ProcessingThreadData* params = (ProcessingThreadData*)(arg);
-   PacketContainer* ic = params->ic;
-   PacketContainer* oc = params->oc;
-   while ( 1 ) {
-      Packet* input = pcStartReadPacket(ic);
-      
-      unsigned messageId = input->header.message;
-      if (messageId == MESSAGE_INPUTPACKET) {
-         Packet* output = pcStartWritePacket(oc);
-         procAppProcessing(*params->app,*input,*output);
-         pcFinishWritePacket(oc);
-      }
-      else if (messageId == MESSAGE_PROCCONFIG) {
-		   procAppConfig(*params->app,*input);		  
-		}
-      pcFinishReadPacket(ic);
-   }
-   return 0;
+	ProcessingThreadData* params = (ProcessingThreadData*) (arg);
+	PacketContainer* ic = params->ic;
+	Dispatcher* dispatcher = &params->app->dispatcher;
+	while (1) {
+		Packet* input = pcStartReadPacket(ic);
+		dispProcess(*dispatcher,input);
+		pcFinishReadPacket(ic);
+	}
+	return 0;
 }
 
 static void* inputExecute(void* arg) {
@@ -233,5 +232,24 @@ static void procAppConfig(ProcApp& app, Packet& packet) {
    ConfigPacketBody* cfgBody = (ConfigPacketBody*)packet.body;
    app.procConfig.A = cfgBody->A;
    app.procConfig.B = cfgBody->B;
+   return;
+}
+
+static void inputHandler(Packet* packet, void* clientData) {
+
+   ProcApp* app = (ProcApp*)clientData;
+
+   Packet* output = pcStartWritePacket(&app->oc);
+   procAppProcessing(*app,*packet,*output);
+   pcFinishWritePacket(&app->oc);
+
+   return;
+}
+
+static void procConfigHandler(Packet* packet, void* clientData) {
+
+   ProcApp* app = (ProcApp*)clientData;
+
+   procAppConfig(*app,*packet);
    return;
 }
