@@ -68,7 +68,11 @@ bool imiAppGeneratePacket(ImiApp& app, InputPacket& packet) {
 	    continue;
 	 
 	 //расчет следующей метки времени
-    app.actTime = add(app.actTime, 0, 100000000);
+    long jitter = long(rand() % (2*app.generationJitterLevel+1)) - app.generationJitterLevel;
+	long timeDelay = 100000000 + jitter * 1000000;
+	if ( timeDelay < 0 )
+		timeDelay = 0;
+	app.actTime = add(app.actTime,0,timeDelay);
 	 
 	 //формирование пакета
     packet.count = app.packetSize;

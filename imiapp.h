@@ -10,6 +10,7 @@ struct ImiApp {
 	int packetCount; //оставшееся количество имитируемых пакетов
    unsigned packetSize; //размер пакета (в отсчетах)
    unsigned maxLevel; //максимальное значение отсчета
+   unsigned generationJitterLevel;  //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
 };
 
 int imiAppRun(ImiApp& app);

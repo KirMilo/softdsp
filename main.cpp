@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 	params.A = 1;
 	params.B = 3;
 	params.procDelay = 0;
+	params.generationJitterLevel = 0;
 
 	if ( !optionsParse(argc, argv, params) ) 
 		return 5;
@@ -81,6 +82,7 @@ int main(int argc, char** argv)
 		app.packetCount = params.packetCount;
 		app.packetSize = params.packetSize;
 		app.maxLevel = params.maxLevel;
+		app.generationJitterLevel = params.generationJitterLevel;
 
 		int ret = imiAppRun(app);
 		close(app.writeFd);
@@ -122,7 +124,7 @@ int main(int argc, char** argv)
 bool optionsParse(int argc, char **argv, ControlParameters& params)
 {
 	while ( 1 ) {
-		int c = getopt (argc, argv, "ic:s:l:a:b:p:");
+		int c = getopt (argc, argv, "ic:s:l:a:b:p:j:");
 		if ( c == -1 )
 			break;
 		switch (c) {
@@ -149,6 +151,9 @@ bool optionsParse(int argc, char **argv, ControlParameters& params)
 			case 't':
 				params.procDelay = atoi(optarg);
 				break;
+			case 'j':
+                params.generationJitterLevel = atoi(optarg);
+                break;
 			default:
 				return false;
       }	

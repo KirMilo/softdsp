@@ -12,6 +12,7 @@ struct ControlParameters
 	unsigned A; 
     unsigned B;
 	unsigned procDelay; //длительность времени обработки в миллисекундах (не менее)
+	unsigned generationJitterLevel; //уровень дрожания темпа генерации пакетов имитатором в миллисекундах
 };
 
 unsigned getDigits(string curLine);
