@@ -4,17 +4,17 @@
 // ATD of output Item
 struct OutputPacketItem{
     
-    unsigned numberItemMax; //number of max item in group
-    int maxItem; //max Item in group
-    unsigned numberStartItem; //number of start item
-    unsigned numberEndItem; // number of end item
+    unsigned localMaxPosition; //position of max item in group
+    unsigned localMax; //max Item in group
+    unsigned positionStartItem; //position of start item
+    unsigned positionEndItem; // position of end item
 };
 
 #define OUTPUTPACKET_MAXCOUNT 100  //max count of items
 
 // ATD of output packet of items
-struct OutputPacket
-{
+struct OutputPacket{
+
 	unsigned count; //count of items
 	OutputPacketItem data[OUTPUTPACKET_MAXCOUNT];
 };

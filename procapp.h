@@ -1,11 +1,18 @@
 #ifndef procapp_h
 #define procapp_h
 
+
+struct ProcConfig
+{
+   // Limits
+    unsigned A; 
+    unsigned B;
+};
+
+
 struct ProcApp
 {
-// Limits
-int A; 
-int B;
+    ProcConfig procConfig;
 };
 
 int procAppRun(ProcApp& app);
