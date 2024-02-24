@@ -12,6 +12,7 @@ struct ProcConfig
 struct ProcApp
 {
     ProcConfig procConfig;
+    int readFd;
 };
 
 int procAppRun(ProcApp& app);
