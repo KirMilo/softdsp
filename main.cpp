@@ -11,10 +11,17 @@
 
 int main()
 {
+
 	int pipeFd[2];
 	if ( pipe(pipeFd) == -1 ) { 	// создает комуникац. канал и два дискриптора 0 - чтение, 1 - запись в случае успеха
 		perror("pipe");
 		return 2;
+	}
+
+	int pipeConsumer[2];
+	if ( pipe(pipeConsumer) == -1 ) {
+		perror("pipe");
+		return 3;
 	}
 	
 	//порождение процесса обработки
@@ -30,9 +37,11 @@ int main()
 		app.procConfig.A = 1;
 		app.procConfig.B = 3;
 		app.readFd = pipeFd[0];
+		app.consumerFd = pipeConsumer[1];
 
 		int ret = procAppRun(app);
 		close(app.readFd);
+		close(app.consumerFd);
 		return ret;
 	}
 	
@@ -44,7 +53,9 @@ int main()
 	}
 	if ( imiPid == 0 ) {
 		close(pipeFd[0]);
-		
+		close(pipeConsumer[0]);
+		close(pipeConsumer[1]);
+
 		ImiApp app;
 		app.writeFd = pipeFd[1];
 		app.fromUser = false;
@@ -59,6 +70,8 @@ int main()
 
 	close(pipeFd[0]);
 	close(pipeFd[1]);	
+	close(pipeConsumer[0]);
+	close(pipeConsumer[1]);
 	
 	//ожидание завершения всех потомков
 	for( unsigned i = 0; i < 2; ++i) {

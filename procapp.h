@@ -13,6 +13,7 @@ struct ProcApp
 {
     ProcConfig procConfig;
     int readFd;
+    int consumerFd;
 };
 
 int procAppRun(ProcApp& app);
