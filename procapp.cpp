@@ -15,6 +15,8 @@ static bool procAppReceivePacket(ProcApp& app, Packet& packet);
 static void procAppProcessing(ProcApp& app, Packet& input, Packet& output);
 static void procAppSendPacket(ProcApp& app, Packet& packet);
 
+static void procAppConfig(ProcApp& app, Packet& packet);
+
 static void processingImpl(const Packet& input, Packet& output, const ProcConfig& config);
 
 static void fillingGroup(unsigned count,unsigned maxPos,unsigned localMax, unsigned start, unsigned end ,OutputPacketBody& output);
@@ -185,12 +187,16 @@ static void* processingExecute(void* arg) {
    PacketContainer* oc = params->oc;
    while ( 1 ) {
       Packet* input = pcStartReadPacket(ic);
-
-      if (input->header.message == MESSAGE_INPUTPACKET) {
+      
+      unsigned messageId = input->header.message;
+      if (messageId == MESSAGE_INPUTPACKET) {
          Packet* output = pcStartWritePacket(oc);
          procAppProcessing(*params->app,*input,*output);
          pcFinishWritePacket(oc);
       }
+      else if (messageId == MESSAGE_PROCCONFIG) {
+		   procAppConfig(*params->app,*input);		  
+		}
       pcFinishReadPacket(ic);
    }
    return 0;
@@ -219,4 +225,12 @@ static void* outputExecute(void* arg) {
       pcFinishReadPacket(oc);
    }
    return 0;
+}
+
+static void procAppConfig(ProcApp& app, Packet& packet) {
+   
+   ConfigPacketBody* cfgBody = (ConfigPacketBody*)packet.body;
+   app.procConfig.A = cfgBody->A;
+   app.procConfig.B = cfgBody->B;
+   return;
 }
