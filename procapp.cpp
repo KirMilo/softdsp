@@ -116,7 +116,7 @@ static void procAppProcessing(ProcApp& app, InputPacket& input, OutputPacket& ou
 
 static void procAppSendPacket(ProcApp& app, OutputPacket& output){
 
-    write(app.consumerFd, &output.count,sizeof(output.count));
+   write(app.consumerFd, &output.count,sizeof(output.count));
 	write(app.consumerFd, output.data, output.count * sizeof(OutputPacketItem));
 	return;
 }

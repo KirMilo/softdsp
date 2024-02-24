@@ -6,6 +6,7 @@ void icInit(InputPacketContainer* ic) {
 	ic->canWrite = InputPacketContainer::BufferSize;
 	ic->readIndex = 0;
 	ic->writeIndex = 0;
+	ic->toTrash = false;
 	return;
 }
 
@@ -39,11 +40,16 @@ void icFinishReadPacket(InputPacketContainer* ic) {
 
 InputPacket* icStartWritePacket(InputPacketContainer* ic) {
    
-   //ожидаем свободной для записи области памяти
-   while ( !ic->canWrite )
-      continue;
-   //блокируем область пакета
-   ic->canWrite--;
+   //выделяем свободную для записи область памяти
+   //или направляем в мусорную корзину
+   if ( ic->canWrite ) {
+     --ic->canWrite;
+     ic->toTrash = false;
+   } else {
+     ic->toTrash = true;
+     return &ic->trashPacket;
+   }
+
    
    InputPacket* ret = ic->packets + ic->writeIndex;
    //переключить буфер
@@ -57,6 +63,9 @@ InputPacket* icStartWritePacket(InputPacketContainer* ic) {
 void icFinishWritePacket(InputPacketContainer* ic) {
    
    //пакет готов
-   ic->canRead++;
+   if ( !ic->toTrash )
+     ++ic->canRead;
+      
+   ic->toTrash = false;
    return;
 }

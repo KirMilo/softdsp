@@ -18,8 +18,8 @@ bool optionsParse(int argc, char** argv, ControlParameters& params);
 int main(int argc, char** argv)
 {
 	ControlParameters params;
-	params.fromUser = true;
-	params.packetCount = 4;
+	params.fromUser = false;
+	params.packetCount = 8;
 	params.packetSize = 16;
 	params.maxLevel = 4;
 	params.A = 1;

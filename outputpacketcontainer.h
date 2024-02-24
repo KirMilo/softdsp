@@ -11,6 +11,8 @@ struct OutputPacketContainer
    unsigned writeIndex;
    volatile unsigned canRead;
    volatile unsigned canWrite;
+   OutputPacket trashPacket;
+   bool toTrash;
 };
 
 void ocInit(OutputPacketContainer* oc);

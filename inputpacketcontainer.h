@@ -11,6 +11,8 @@ struct InputPacketContainer
    unsigned writeIndex;
    volatile unsigned canRead;
    volatile unsigned canWrite;
+   InputPacket trashPacket;
+   bool toTrash;
 };
 
 void icInit(InputPacketContainer* ic);
